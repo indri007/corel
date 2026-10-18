@@ -1,0 +1,13 @@
+# Build & Target artifacts
+target/
+*.log
+
+# Cloned repositories (managed via clone-coreldraw.sh)
+tracedraw/
+coreldraw-clones/
+
+# OS and IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
