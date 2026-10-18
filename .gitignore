@@ -41,3 +41,10 @@ svg-animation-creator/
 Thumbs.db
 .vscode/
 .idea/
+
+# Streamlit Secrets & Credentials
+.streamlit/secrets.toml
+.env
+*.env
+*.pem
+*.key

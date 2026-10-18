@@ -18,6 +18,13 @@ HF_ROUTER = "https://router.huggingface.co/hf-inference/models"
 
 
 def _token() -> str:
+    """Ambil token Hugging Face dari st.secrets atau environment variable."""
+    try:
+        import streamlit as st
+        if "HF_TOKEN" in st.secrets:
+            return str(st.secrets["HF_TOKEN"]).strip()
+    except Exception:
+        pass
     return os.environ.get("HF_TOKEN", "").strip()
 
 
