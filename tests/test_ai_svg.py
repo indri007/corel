@@ -27,5 +27,10 @@ def test_save_valid_svg(tmp_path):
 
 def test_hf_token_missing(monkeypatch):
     monkeypatch.delenv("HF_TOKEN", raising=False)
+    try:
+        import streamlit as st
+        monkeypatch.setattr(st, "secrets", {}, raising=False)
+    except Exception:
+        pass
     with pytest.raises(RuntimeError, match="HF_TOKEN"):
         aisvg.text_to_svg_hf("test")
