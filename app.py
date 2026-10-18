@@ -226,33 +226,43 @@ Setiap departemen diharapkan menyesuaikan tata kelola dokumen sesuai dengan pedo
             raw_bytes = uploaded_pdf.read()
             file_name_lower = uploaded_pdf.name.lower()
 
-            # ── Konversi DOCX → PDF jika diperlukan ──
-            if file_name_lower.endswith((".docx", ".doc")):
-                if not HAS_DOCX:
-                    st.error("Library `python-docx` belum terinstal. Jalankan: `pip install python-docx`")
-                    st.stop()
-                with st.spinner("Mengonversi file Word (.docx) ke PDF..."):
+            # ── Konversi DOCX / Word → PDF dengan Full Fidelity ──
+            if file_name_lower.endswith((".docx", ".doc", ".odt", ".rtf")):
+                with st.spinner("Mengonversi dokumen Word ke PDF dengan presisi tata letak penuh (LibreOffice Engine)..."):
+                    converted_pdf_path = None
                     try:
-                        docx_doc = DocxDocument(io.BytesIO(raw_bytes))
-                        full_text = "\n\n".join(
-                            para.text for para in docx_doc.paragraphs if para.text.strip()
-                        )
-                        if not full_text.strip():
-                            st.warning("Dokumen Word kosong atau hanya berisi gambar. Teks tidak ditemukan.")
-                            full_text = "(Dokumen Word tidak mengandung teks yang dapat diekstrak.)"
+                        import tempfile
+                        from utils.word_to_pdf import word_to_pdf
+                        suffix = os.path.splitext(uploaded_pdf.name)[1]
+                        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp_word:
+                            tmp_word.write(raw_bytes)
+                            tmp_word_path = tmp_word.name
 
-                        # Gunakan pipeline pembuatan dokumen profesional dari teks
-                        raw_bytes = create_professional_document_from_text(
-                            title=doc_title if doc_title else uploaded_pdf.name.rsplit(".", 1)[0],
-                            content=full_text,
-                            company_name=header_name,
-                            doc_number="DOCX-CONVERT",
-                            accent_color_hex=accent_col
-                        )
-                        st.success(f"✅ File Word berhasil dikonversi! ({len(full_text):,} karakter diekstrak)")
-                    except Exception as e:
-                        st.error(f"Gagal mengonversi DOCX: {e}")
-                        st.stop()
+                        converted_pdf_path = word_to_pdf(tmp_word_path)
+                        with open(converted_pdf_path, "rb") as f_pdf:
+                            raw_bytes = f_pdf.read()
+                        st.success(f"✅ Dokumen Word berhasil dikonversi dengan tata letak asli utuh! ({len(raw_bytes):,} bytes)")
+                    except Exception as err_lo:
+                        st.warning(f"Engine LibreOffice headless tidak aktif ({err_lo}). Beralih ke ekstraksi teks ReportLab...")
+                        if not HAS_DOCX:
+                            st.error("Library `python-docx` tidak tersedia.")
+                            st.stop()
+                        try:
+                            docx_doc = DocxDocument(io.BytesIO(raw_bytes))
+                            full_text = "\n\n".join(
+                                para.text for para in docx_doc.paragraphs if para.text.strip()
+                            )
+                            raw_bytes = create_professional_document_from_text(
+                                title=doc_title if doc_title else uploaded_pdf.name.rsplit(".", 1)[0],
+                                content=full_text,
+                                company_name=header_name,
+                                doc_number="DOCX-CONVERT",
+                                accent_color_hex=accent_col
+                            )
+                            st.success("✅ Teks berhasil diekstrak dan disusun ulang ke PDF!")
+                        except Exception as e_docx:
+                            st.error(f"Gagal memproses dokumen Word: {e_docx}")
+                            st.stop()
 
             with st.spinner("Memproses transformasi dokumen..."):
                 result_pdf_bytes = enhance_existing_pdf(
