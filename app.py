@@ -3,6 +3,13 @@ import streamlit as st
 from PIL import Image
 import pymupdf
 
+# Konversi DOCX → PDF
+try:
+    from docx import Document as DocxDocument
+    HAS_DOCX = True
+except ImportError:
+    HAS_DOCX = False
+
 # Import modul utils
 from utils.stamp_generator import generate_vector_stamp_svg, svg_to_png_bytes
 from utils.image_enhancer import clean_scanned_document, enhance_photo_professional, trace_bitmap_to_svg
@@ -143,7 +150,12 @@ with tab_pdf:
         doc_content = ""
 
         if input_type == "Unggah Berkas PDF":
-            uploaded_pdf = st.file_uploader("Pilih Berkas PDF:", type=["pdf"], key="pdf_uploader")
+            uploaded_pdf = st.file_uploader(
+                "Pilih Berkas PDF atau DOCX (Word):",
+                type=["pdf", "docx", "doc"],
+                key="pdf_uploader",
+                help="Mendukung file PDF dan Word (.docx). File Word akan dikonversi otomatis ke PDF."
+            )
         else:
             doc_title = st.text_input("Judul Dokumen:", value="SURAT KEPUTUSAN DIREKSI TENTANG STANDARISASI DOKUMEN")
             doc_number = st.text_input("Nomor Registrasi / Surat:", value="SK/DIR-GTI/X/2026-088")
@@ -189,6 +201,36 @@ Setiap departemen diharapkan menyesuaikan tata kelola dokumen sesuai dengan pedo
 
         if input_type == "Unggah Berkas PDF" and uploaded_pdf is not None:
             raw_bytes = uploaded_pdf.read()
+            file_name_lower = uploaded_pdf.name.lower()
+
+            # ── Konversi DOCX → PDF jika diperlukan ──
+            if file_name_lower.endswith((".docx", ".doc")):
+                if not HAS_DOCX:
+                    st.error("Library `python-docx` belum terinstal. Jalankan: `pip install python-docx`")
+                    st.stop()
+                with st.spinner("Mengonversi file Word (.docx) ke PDF..."):
+                    try:
+                        docx_doc = DocxDocument(io.BytesIO(raw_bytes))
+                        full_text = "\n\n".join(
+                            para.text for para in docx_doc.paragraphs if para.text.strip()
+                        )
+                        if not full_text.strip():
+                            st.warning("Dokumen Word kosong atau hanya berisi gambar. Teks tidak ditemukan.")
+                            full_text = "(Dokumen Word tidak mengandung teks yang dapat diekstrak.)"
+
+                        # Gunakan pipeline pembuatan dokumen profesional dari teks
+                        raw_bytes = create_professional_document_from_text(
+                            title=doc_title if doc_title else uploaded_pdf.name.rsplit(".", 1)[0],
+                            content=full_text,
+                            company_name=header_name,
+                            doc_number="DOCX-CONVERT",
+                            accent_color_hex=accent_col
+                        )
+                        st.success(f"✅ File Word berhasil dikonversi! ({len(full_text):,} karakter diekstrak)")
+                    except Exception as e:
+                        st.error(f"Gagal mengonversi DOCX: {e}")
+                        st.stop()
+
             with st.spinner("Memproses transformasi dokumen..."):
                 result_pdf_bytes = enhance_existing_pdf(
                     raw_bytes,
