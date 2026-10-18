@@ -30,32 +30,32 @@ st.set_page_config(
 )
 
 # -----------------------------------------------------------------------------
-# Custom CSS Styling (Rich Aesthetic ala CorelDRAW & Modern Dark Glassmorphism)
+# Custom CSS Styling (Material Design 3 — Light Theme)
 # -----------------------------------------------------------------------------
 st.markdown("""
 <style>
-    /* Gradient Header & Modern Font */
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    /* Google Font — Inter for Material 3 feel */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     
     html, body, [class*="css"] {
-        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-family: 'Inter', sans-serif;
     }
 
     .main-header {
-        background: linear-gradient(135deg, rgba(0, 200, 83, 0.15) 0%, rgba(13, 71, 161, 0.2) 100%);
-        border: 1px solid rgba(0, 200, 83, 0.3);
-        border-radius: 16px;
-        padding: 24px;
+        background: linear-gradient(135deg, #E0F2F1 0%, #E3F2FD 50%, #FFF3E0 100%);
+        border: 1px solid #B2DFDB;
+        border-radius: 20px;
+        padding: 28px 32px;
         margin-bottom: 24px;
-        backdrop-filter: blur(10px);
+        box-shadow: 0 2px 12px rgba(0, 137, 123, 0.08);
     }
 
     .badge-pill {
         display: inline-block;
-        background: rgba(0, 200, 83, 0.2);
-        color: #00e676;
-        border: 1px solid rgba(0, 200, 83, 0.4);
-        padding: 4px 12px;
+        background: #E0F2F1;
+        color: #00695C;
+        border: 1px solid #80CBC4;
+        padding: 4px 14px;
         border-radius: 20px;
         font-size: 0.8rem;
         font-weight: 700;
@@ -64,33 +64,43 @@ st.markdown("""
 
     .badge-accent {
         display: inline-block;
-        background: rgba(41, 121, 255, 0.2);
-        color: #82b1ff;
-        border: 1px solid rgba(41, 121, 255, 0.4);
-        padding: 4px 12px;
+        background: #E3F2FD;
+        color: #1565C0;
+        border: 1px solid #90CAF9;
+        padding: 4px 14px;
         border-radius: 20px;
         font-size: 0.8rem;
         font-weight: 700;
     }
 
     .feature-card {
-        background: #182032;
-        border: 1px solid #23304a;
-        border-radius: 12px;
-        padding: 18px;
+        background: #FFFFFF;
+        border: 1px solid #E0E0E0;
+        border-radius: 16px;
+        padding: 20px;
         margin-bottom: 16px;
-        transition: transform 0.2s ease, border-color 0.2s ease;
+        box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
     .feature-card:hover {
-        border-color: #00c853;
+        box-shadow: 0 4px 16px rgba(0, 137, 123, 0.12);
         transform: translateY(-2px);
+    }
+
+    /* Streamlit overrides for light feel */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+    }
+    .stTabs [data-baseweb="tab"] {
+        border-radius: 12px 12px 0 0;
+        font-weight: 600;
     }
 </style>
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# Header Utama
+# Header Utama (Material 3 Light)
 # -----------------------------------------------------------------------------
 st.markdown("""
 <div class="main-header">
@@ -100,16 +110,16 @@ st.markdown("""
                 <span class="badge-pill">CORELDRAW-INSPIRED</span>
                 <span class="badge-accent">STREAMLIT CLOUD EDITION</span>
             </div>
-            <h1 style="margin: 0; font-size: 2.2rem; font-weight: 800; color: #f8fafc;">
-                🎨 CorelDoc Studio <span style="color: #00e676; font-size: 1.8rem;">Pro</span>
+            <h1 style="margin: 0; font-size: 2.2rem; font-weight: 800; color: #1C1B1F;">
+                🎨 CorelDoc Studio <span style="color: #00897B; font-size: 1.8rem;">Pro</span>
             </h1>
-            <p style="margin: 6px 0 0 0; color: #94a3b8; font-size: 1rem;">
+            <p style="margin: 6px 0 0 0; color: #49454F; font-size: 1rem;">
                 Transformasi tulisan, dokumen, PDF, dan gambar menjadi format korporat profesional dengan presisi vektor.
             </p>
         </div>
         <div>
             <a href="https://github.com/indri007/corel" target="_blank" style="text-decoration: none;">
-                <button style="background: #1e293b; color: #e2e8f0; border: 1px solid #334155; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                <button style="background: #00897B; color: #FFFFFF; border: none; padding: 10px 20px; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 0.9rem; box-shadow: 0 2px 8px rgba(0,137,123,0.25); transition: background 0.2s ease;">
                     ⭐ GitHub: indri007/corel
                 </button>
             </a>
@@ -465,6 +475,6 @@ st.markdown("---")
 st.markdown("""
 <div style="text-align: center; color: #64748b; font-size: 0.85rem; padding: 12px 0;">
     <b>CorelDoc Studio Pro</b> &bull; Dibangun untuk Kompatibilitas Streamlit Cloud & GitHub Deployment &bull; 
-    Repositori: <a href="https://github.com/indri007/corel" target="_blank" style="color: #00e676; text-decoration: none;">github.com/indri007/corel</a>
+    Repositori: <a href="https://github.com/indri007/corel" target="_blank" style="color: #00897B; text-decoration: none; font-weight: 600;">github.com/indri007/corel</a>
 </div>
 """, unsafe_allow_html=True)
