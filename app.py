@@ -282,6 +282,22 @@ with tab_img:
                 mime="image/png",
                 use_container_width=True
             )
+
+            # Fitur Ekstraksi Tulisan OCR Tesseract
+            st.markdown("---")
+            st.markdown("##### 🔍 Ekstraksi Tulisan (OCR Tesseract)")
+            if st.button("Jalankan Pembacaan Teks (OCR)", key="btn_ocr"):
+                with st.spinner("Membaca teks dari gambar scan menggunakan Tesseract..."):
+                    try:
+                        import pytesseract
+                        extracted_text = pytesseract.image_to_string(processed_img)
+                        if extracted_text.strip():
+                            st.text_area("Hasil Ekstraksi Teks (Dapat Diedit/Disalin):", value=extracted_text, height=140)
+                            st.success("Teks berhasil diekstrak! Anda dapat menyalin teks ini ke Tab 1 (Penyempurna PDF) untuk diformat ulang.")
+                        else:
+                            st.warning("Tidak ditemukan teks yang dapat dibaca secara jelas pada gambar ini.")
+                    except Exception as e:
+                        st.error(f"Gagal memproses OCR: {str(e)}")
         else:
             st.info("💡 Unggah gambar tanda tangan, diagram, scan kertas, atau foto untuk melakukan pembersihan & penajaman otomatis.")
 
