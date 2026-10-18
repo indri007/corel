@@ -100,22 +100,35 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# Header Utama (Material 3 Light)
+# Header Utama (Material 3 Light) — dengan Logo
 # -----------------------------------------------------------------------------
-st.markdown("""
+import base64, os
+
+_logo_path = os.path.join(os.path.dirname(__file__), "assets", "logo.jpg")
+if os.path.exists(_logo_path):
+    with open(_logo_path, "rb") as _f:
+        _logo_b64 = base64.b64encode(_f.read()).decode()
+    _logo_html = f'<img src="data:image/jpeg;base64,{_logo_b64}" style="width: 72px; height: 72px; border-radius: 16px; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-right: 18px;" />'
+else:
+    _logo_html = ""
+
+st.markdown(f"""
 <div class="main-header">
     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-        <div>
-            <div style="margin-bottom: 8px;">
-                <span class="badge-pill">CORELDRAW-INSPIRED</span>
-                <span class="badge-accent">STREAMLIT CLOUD EDITION</span>
+        <div style="display: flex; align-items: center;">
+            {_logo_html}
+            <div>
+                <div style="margin-bottom: 8px;">
+                    <span class="badge-pill">CORELDRAW-INSPIRED</span>
+                    <span class="badge-accent">STREAMLIT CLOUD EDITION</span>
+                </div>
+                <h1 style="margin: 0; font-size: 2.2rem; font-weight: 800; color: #1C1B1F;">
+                    CorelDoc Studio <span style="color: #00897B; font-size: 1.8rem;">Pro</span>
+                </h1>
+                <p style="margin: 6px 0 0 0; color: #49454F; font-size: 1rem;">
+                    Transformasi tulisan, dokumen, PDF, dan gambar menjadi format korporat profesional dengan presisi vektor.
+                </p>
             </div>
-            <h1 style="margin: 0; font-size: 2.2rem; font-weight: 800; color: #1C1B1F;">
-                🎨 CorelDoc Studio <span style="color: #00897B; font-size: 1.8rem;">Pro</span>
-            </h1>
-            <p style="margin: 6px 0 0 0; color: #49454F; font-size: 1rem;">
-                Transformasi tulisan, dokumen, PDF, dan gambar menjadi format korporat profesional dengan presisi vektor.
-            </p>
         </div>
         <div>
             <a href="https://github.com/indri007/corel" target="_blank" style="text-decoration: none;">
