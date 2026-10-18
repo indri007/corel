@@ -1,185 +1,196 @@
-# Panduan Teknis: Instalasi CorelDRAW & Membangun Klon Open-Source (TraceDraw)
+# Ekosistem CorelDRAW, Klon Open-Source, Web Editors & Vektor AI
 
-Dokumen ini menyajikan panduan teknis mendalam mengenai dua konteks yang sering dimaksud ketika membahas **"Clone CorelDRAW"**:
-
-1. **Instalasi & Deployment Massal CorelDRAW Resmi (Windows)**: Melakukan instalasi otomatis tanpa tampilan antarmuka pengguna (*silent/unattended install*) menggunakan switch baris perintah (*command line*).
-2. **Membangun Editor Klon CorelDRAW Open-Source (TraceDraw)**: Membangun dan menjalankan editor grafis vektor open-source berbasis bahasa pemrograman Rust yang mampu membuka dan memproses format berkas `.cdr`.
+Repositori ini menyajikan panduan teknis mendalam dan kumpulan ekosistem lengkap seputar **CorelDRAW**, alternatif editor vektor open-source, editor grafis berbasis web (PWA/Canvas/WebGPU), model kecerdasan buatan (AI) pembuat vektor/SVG, serta pustaka (*library*) pemrosesan grafis vektor modern.
 
 ---
 
 > [!IMPORTANT]
 > **Pembedaan Konteks Sistem Operasi:**
-> - **Bagian A (CorelDRAW Asli)** ditujukan untuk lingkungan **Windows** (menggunakan berkas eksekusi biner `Setup.exe`).
-> - **Bagian B (TraceDraw)** bersifat **Multi-platform** (dapat di-compile dan dijalankan di **macOS**, **Linux**, **Windows**, serta di dalam **Web Browser** via WebAssembly).
+> - **Bagian 1 (CorelDRAW Asli)** ditujukan untuk lingkungan **Windows** (menggunakan berkas eksekusi biner `Setup.exe`).
+> - **Bagian 2 - 6 (Klon Open-Source, Web, & AI)** bersifat **Multi-platform** (berjalan di **macOS**, **Linux**, **Windows**, serta di dalam **Web Browser**).
 
 ---
 
-## Bagian A: Instalasi CorelDRAW Resmi via Command Line (Windows)
+## 📑 Daftar Isi
+1. [Instalasi CorelDRAW Resmi via Command Line (Windows)](#1-instalasi-coreldraw-resmi-via-command-line-windows)
+2. [Membangun Klon CorelDRAW: TraceDraw (Rust)](#2-membangun-klon-coreldraw-tracedraw-rust)
+3. [Katalog Klon & Editor Vektor Desktop Open-Source](#3-katalog-klon--editor-vektor-desktop-open-source)
+4. [Katalog Editor Vektor Berbasis Web & Browser (PWA/Canvas/WebGPU)](#4-katalog-editor-vektor-berbasis-web--browser-pwacanvaswebgpu)
+5. [Model AI Foundation untuk Grafis Vektor & SVG (Hugging Face)](#5-model-ai-foundation-untuk-grafis-vektor--svg-hugging-face)
+6. [API, Rendering Engine, & Library Manipulasi Vektor](#6-api-rendering-engine--library-manipulasi-vektor)
+7. [Panduan Skrip Otomatisasi (clone-coreldraw.sh)](#7-panduan-skrip-otomatisasi-clone-coreldrawsh)
 
-Metode ini umum digunakan oleh administrator sistem (*sysadmin*) dan teknisi TI untuk menyebarkan (*deploy*) CorelDRAW Graphics Suite ke banyak workstation secara otomatis tanpa interaksi pengguna.
+---
 
-### 1. Perintah Dasar Silent Install
-Untuk menjalankan instalasi tanpa menampilkan antarmuka konfigurasi interaktif, gunakan switch `/qn` (Quiet No-UI):
+## 1. Instalasi CorelDRAW Resmi via Command Line (Windows)
 
+Metode ini digunakan oleh administrator sistem untuk menyebarkan (*deploy*) CorelDRAW Graphics Suite secara otomatis (*silent/unattended install*).
+
+### A. Perintah Dasar Silent Install
 ```cmd
 Setup.exe /qn
 ```
+- `/qn` : *Quiet No-UI* (berjalan sepenuhnya di latar belakang tanpa dialog antarmuka).
+- `/qb` : *Quiet Basic UI* (hanya menampilkan indikator bilah kemajuan / *progress bar* sederhana).
+- `SERIALNUMBER="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"` : Memasukkan nomor lisensi secara langsung.
 
-*Catatan Switch Tambahan:*
-- `/qb` : Menampilkan UI dasar (*progress bar* saja tanpa meminta input pengguna).
-- `SERIALNUMBER="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"` : Memasukkan lisensi serial secara langsung saat instalasi.
-
----
-
-### 2. Memilih Komponen dengan Parameter `ADDLOCAL`
-Parameter `ADDLOCAL` memungkinkan Anda memilih modul atau fitur spesifik yang ingin dipasang:
-
+### B. Memilih Komponen dengan `ADDLOCAL`
 ```cmd
-:: Contoh 1: Hanya menginstal Corel DESIGNER dan Windows Shell Extension (penampil thumbnail .cdr di explorer)
+:: Contoh 1: Hanya menginstal Corel DESIGNER dan Windows Shell Extension
 Setup.exe /qn ADDLOCAL=Designer SHELLEXT=1
 
-:: Contoh 2: Instalasi CorelDRAW utama bersama komponen GPL Ghostscript
+:: Contoh 2: Instalasi CorelDRAW utama bersama modul GPL Ghostscript
 Setup.exe /qn ADDLOCAL=Draw GPL=1
 ```
-
-*Daftar Fitur Populer `ADDLOCAL`:*
-- `Draw` : CorelDRAW (Editor Vektor Utama).
-- `PHOTO-PAINT` : Corel PHOTO-PAINT (Editor Gambar Bitmap).
-- `Capture` : Corel CAPTURE.
-- `Designer` : Corel DESIGNER (Ilustrasi Teknis).
-- `FontManager` : Corel Font Manager.
+*Daftar Fitur `ADDLOCAL`:*
+- `Draw` : Editor Vektor CorelDRAW.
+- `PHOTO-PAINT` : Editor bitmap Corel PHOTO-PAINT.
+- `Designer` : Corel DESIGNER (Ilustrasi teknis).
+- `FontManager` : Manajemen tipografi Corel Font Manager.
 - `SHELLEXT` : Integrasi Windows Shell Extension (pratinjau thumbnail file `.cdr`).
-- `GPL` : Modul pendukung penerjemah PostScript berbasis GPL.
+- `GPL` : Modul penerjemah berkas PostScript berbasis GPL.
 
----
-
-### 3. Mencatat Log Instalasi (*Logging*)
-Untuk kebutuhan audit dan pelacakan kesalahan saat proses instalasi di latar belakang, sertakan parameter pencatatan berkas log (`/L`):
-
+### C. Mencatat Log Instalasi (*Logging*)
 ```cmd
 Setup.exe /qn /L "C:\Logs\Corel_Install.log"
 ```
-
-Jika memerlukan log detail (*verbose*):
+Untuk log verbose mendalam:
 ```cmd
 Setup.exe /qn /L*v "C:\Logs\Corel_Install_Verbose.log"
 ```
 
+### D. Catatan Khusus CorelDRAW 2022 ke Atas (Server Image & `/a`)
+Pada versi modern (2022, 2023, 2024+):
+```cmd
+X:\x64\Setup.exe /a
+```
+- Berkas biner `Setup.exe` terletak di subfolder `\x64\`.
+- Parameter `/a` digunakan untuk membuat *Administrative Server Image* di folder bersama jaringan (*network share*) untuk volume licensing / multi-seat corporate deployment.
+
+### E. Prasyarat Sistem Tambahan
+- **GPL Ghostscript**: Untuk memproses berkas EPS & PostScript (PS).
+- **Microsoft VSTA / VBA**: Diperlukan jika memanfaatkan otomatisasi makro.
+- **Microsoft Visual C++ Redistributable (2015–2022)**.
+
 ---
 
-### 4. Catatan Khusus CorelDRAW 2022 ke Atas: Server Image & Perintah `/a`
-Pada CorelDRAW versi modern (2022, 2023, 2024 ke atas):
-- Parameter `/a` digunakan untuk membuat **Server Image** (Administrative Deployment Image) di folder bersama jaringan (*network share*):
-  ```cmd
-  X:\x64\Setup.exe /a
+## 2. Membangun Klon CorelDRAW: TraceDraw (Rust)
+
+**TraceDraw** adalah proyek *clean-room* editor vektor berbasis bahasa pemrograman **Rust** yang dapat membaca berkas `.cdr` (CorelDRAW versi 3–22) dan menulis berkas `.cdr` (versi 7–22).
+
+### A. Prasyarat Sistem
+- **Rust Toolchain**: `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y`
+- **Linux Dev Libs**:
+  ```bash
+  sudo apt update && sudo apt install -y build-essential cmake clang libasound2-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxinerama-dev libwayland-dev libxkbcommon-dev
   ```
-- **Struktur Jalur `x64`**: Pada media instalasi versi modern, berkas `Setup.exe` utama biasanya terletak di dalam subdirektori arsitektur `x64\`.
-- **Integritas Lisensi Korporat**: Perintah `/a` membutuhkan serial key korporat/volume licensing (*Multi-Seat License*). Setelah gambar server terbentuk di folder bersama (misal `\\server\share\Corel`), klien dapat menjalankan instalasi langsung dari folder tersebut tanpa media fisik.
+  *(Pengguna macOS tidak memerlukan paket Linux di atas karena menggunakan Cocoa/Metal bawaan).*
 
----
-
-### 5. Prasyarat Tambahan (Prerequisites)
-Sebelum menjalankan instalasi massal, pastikan dependensi berikut sudah tersedia pada sistem target:
-1. **GPL Ghostscript**: Dibutuhkan untuk membaca, mengimpor, dan mengekspor berkas EPS dan PostScript (PS) berformat terbuka.
-2. **Microsoft VSTA (Visual Studio Tools for Applications)** / **VBA**: Diperlukan jika alur kerja Anda memanfaatkan skrip otomatisasi makro (*Macros*) di CorelDRAW.
-3. **Microsoft Visual C++ Redistributable**: Runtime C++ (2015–2022) harus terpasang agar modul biner CorelDRAW dapat berjalan stabil.
-
----
-
-## Bagian B: Membangun Clone CorelDRAW Open-Source (TraceDraw)
-
-**TraceDraw** adalah proyek *clean-room implementation* editor grafik vektor yang dibangun dari nol menggunakan bahasa pemrograman **Rust**. TraceDraw memiliki keunggulan utama berupa kemampuan membaca format berkas asli CorelDRAW (`.cdr` versi 3 hingga 22) dan menulis berkas `.cdr` (versi 7 hingga 22).
-
-### 1. Prasyarat Sistem & Dependensi
-
-#### A. Rust Toolchain (Semua Platform)
-Pastikan Rust compiler (`rustc`) dan package manager (`cargo`) sudah terpasang:
-```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-source "$HOME/.cargo/env"
-```
-
-#### B. Dependensi Library Grafis (Khusus Linux / Ubuntu / Debian)
-TraceDraw membutuhkan library sistem untuk antarmuka jendela (X11 & Wayland), penanganan input keyboard, dan akselerasi grafis OpenGL/Mesa:
-```bash
-sudo apt update && sudo apt install -y \
-    build-essential \
-    cmake \
-    clang \
-    libasound2-dev \
-    libx11-dev \
-    libxrandr-dev \
-    libxi-dev \
-    libgl1-mesa-dev \
-    libglu1-mesa-dev \
-    libxcursor-dev \
-    libxinerama-dev \
-    libwayland-dev \
-    libxkbcommon-dev
-```
-*(Catatan: Untuk pengguna **macOS**, library di atas tidak diperlukan karena macOS menggunakan native Cocoa, Metal, dan CoreAudio yang sudah terintegrasi pada sistem operasi).*
-
----
-
-### 2. Meng-clone Repositori TraceDraw
-Unduh repositori kode sumber resmi:
+### B. Clone, Build, & Run
 ```bash
 git clone https://github.com/igtoth/tracedraw.git
 cd tracedraw
-```
 
----
-
-### 3. Build & Menjalankan Aplikasi
-
-#### Mode Desktop (Release Build)
-Untuk mendapatkan performa optimal saat menggambar vektor:
-```bash
+# Menjalankan aplikasi desktop (release mode)
 cargo run --release -p tracedraw
-```
 
-#### Membuka Berkas `.cdr` Secara Langsung:
-```bash
-cargo run --release -p tracedraw -- nama_desain.cdr
-```
+# Membuka file .cdr langsung
+cargo run --release -p tracedraw -- desain.cdr
 
-#### Menjalankan Versi Web (Browser via WebAssembly):
-TraceDraw dapat dikompilasi menjadi WebAssembly untuk dijalankan di browser tanpa instalasi:
-```bash
-# Tambahkan target wasm
-rustup target add wasm32-unknown-unknown
-
-# Pasang wasm-bindgen versi yang sesuai
-cargo install wasm-bindgen-cli --version 0.2.129
-
-# Eksekusi build script web
-./scripts/web/build.sh
-
-# Sajikan melalui server HTTP lokal
-python3 -m http.server -d site 8080
-```
-Buka browser di `http://localhost:8080`.
-
----
-
-### 4. Menjalankan Pengujian (*Test Suite*)
-Untuk memastikan seluruh modul parser berkas `.cdr`, mesin teks, dan kalkulasi kurva vektor berfungsi dengan benar:
-```bash
-# Menjalankan seluruh test
+# Menjalankan pengujian (test suite)
 cargo test
-
-# Menjalankan test spesifik untuk modul pembaca .cdr
 cargo test -p tracedraw-cdr
 ```
 
+### C. Menjalankan di Browser (WebAssembly)
+```bash
+rustup target add wasm32-unknown-unknown
+cargo install wasm-bindgen-cli --version 0.2.129
+./scripts/web/build.sh
+python3 -m http.server -d site 8080
+```
+
 ---
 
-## Ringkasan Perbandingan
+## 3. Katalog Klon & Editor Vektor Desktop Open-Source
 
-| Kategori | Instalasi CorelDRAW Asli | Klon Open-Source (TraceDraw) |
-|---|---|---|
-| **Tujuan** | Menyebarkan perangkat lunak resmi Corel | Membangun editor vektor open-source independen |
-| **Sistem Operasi** | Windows (x64) | Lintas Platform (macOS, Linux, Windows, Web) |
-| **Lisensi** | Komersial Berbayar (Proprietary) | Open Source (MIT / Apache-2.0) |
-| **Alat Utama** | `Setup.exe`, MSI Installer | Rust, Cargo, `wasm-bindgen` |
-| **Dukungan `.cdr`** | Asli Penuh | Kompatibel *clean-room* (baca v3–v22, tulis v7–v22) |
+| Perangkat Lunak | Repositori / Sumber | Bahasa / Stack | Deskripsi & Kegunaan |
+|---|---|---|---|
+| **TraceDraw** | [igtoth/tracedraw](https://github.com/igtoth/tracedraw) | Rust | Editor vektor *clean-room* dengan dukungan native membaca & menulis format berkas `.cdr`. |
+| **sK1** | [sk1-project/sk1-wx](https://github.com/sk1-project/sk1-wx) | Python, C, wxWidgets | Alternatif CorelDRAW open-source legendaris dengan manajemen warna CMYK tingkat profesional dan importir `.cdr`. |
+| **Gravit Designer (Offline)** | [rathlinus/gravit-designer](https://github.com/rathlinus/gravit-designer) | JavaScript, Electron | Versi lokal mandiri dari Corel Vector (dahulu Gravit Designer) dengan fitur Pro offline tanpa akun cloud. |
+| **Inkscape** | [inkscape/inkscape](https://github.com/inkscape/inkscape) | C++, GTK | Editor vektor open-source standar industri dengan format native SVG. |
+| **Karbon (Calligra)** | [KDE/calligra](https://github.com/KDE/calligra) | C++, Qt, KDE Frameworks | Komponen ilustrasi vektor dari KDE Calligra Suite untuk pembuatan ilustrasi, logo, dan diagram. |
+| **LazPaint** | [bgrabitmap/lazpaint](https://github.com/bgrabitmap/lazpaint) | Pascal, BGRABitmap | Editor grafis raster dan vektor ringan dengan kurva Bezier, layer, dan filter visual. |
+
+---
+
+## 4. Katalog Editor Vektor Berbasis Web & Browser (PWA/Canvas/WebGPU)
+
+| Aplikasi | Repositori | Teknologi | Deskripsi |
+|---|---|---|---|
+| **Graphite** | [GraphiteEditor/Graphite](https://github.com/GraphiteEditor/Graphite) | Rust, WebAssembly, WebGL | Editor 2D prosedural berbasis node ("Blender-nya 2D") yang berjalan sebagai PWA di browser. |
+| **SVG-Edit** | [SVG-Edit/svgedit](https://github.com/SVG-Edit/svgedit) | JavaScript | Editor SVG open-source berbasis browser paling populer yang telah berumur 15+ tahun. |
+| **Method Draw** | [methodofaction/Method-Draw](https://github.com/methodofaction/Method-Draw) | JavaScript | Fork SVG-Edit yang disederhanakan dengan antarmuka elegan untuk pengeditan cepat. |
+| **Vectora** | [wieslawsoltes/Vectora](https://github.com/wieslawsoltes/Vectora) | JS, WGSL, WebGPU | Editor vektor berbasis WebGPU tanpa framework dan tanpa instalasi npm. |
+| **Suika** | [F-star/suika](https://github.com/F-star/suika) | TypeScript, HTML5 Canvas | Editor vektor infinite-canvas dengan alur kerja mirip Figma. |
+| **VectorCraft** | [storytold/vectorcraft](https://github.com/storytold/vectorcraft) | Rust, WebAssembly | Reimplementasi alur kerja Adobe Illustrator menggunakan Rust murni yang berjalan di web. |
+| **Penpot** | [penpot/penpot](https://github.com/penpot/penpot) | Clojure, TypeScript, SVG | Platform desain UI/UX dan prototipe open-source dengan standar terbuka SVG dan CSS. |
+| **CorelClone Pro** | [alternativeto.net](https://alternativeto.net/software/corelclone-pro/about/) | Web / PWA | Studio desain vektor PWA terinspirasi CorelDRAW dengan fitur penelusuran bitmap (PowerTRACE). |
+
+---
+
+## 5. Model AI Foundation untuk Grafis Vektor & SVG (Hugging Face)
+
+| Model | Repositori HF | Ukuran | Kemampuan Utama |
+|---|---|---|---|
+| **SVGThinker-7B** | [Caffin/SVGThinker-7B](https://huggingface.co/Caffin/SVGThinker-7B) | 7B | LLM reasoning khusus untuk menghasilkan dan mengoptimasi kode vektor SVG kompleks. |
+| **HiVG-3B-Base** | [xingxm/HiVG-3B-Base](https://huggingface.co/xingxm/HiVG-3B-Base) | 3B | Model pemrosesan grafis vektor hierarkis (*Hierarchical Vector Graphics*). |
+| **StarVector-8B-im2svg** | [starvector/starvector-8b-im2svg](https://huggingface.co/starvector/starvector-8b-im2svg) | 8B | Foundation model yang mengonversi gambar raster atau teks menjadi instruksi SVG presisi tinggi. |
+| **OmniSVG 1.1** | [aoiandroid/OmniSVG1.1_4B](https://huggingface.co/aoiandroid/OmniSVG1.1_4B) | 4B | Model multimodal untuk inferensi dan pembuatan aset vektor SVG multi-domain. |
+
+---
+
+## 6. API, Rendering Engine, & Library Manipulasi Vektor
+
+| Nama Library / Tool | Repositori | Bahasa / Format | Fungsi Utama |
+|---|---|---|---|
+| **VTracer** | [visioncortex/vtracer](https://github.com/visioncortex/vtracer) | Rust, WASM, Node.js | Konverter raster ke vektor SVG full-color super cepat (alternatif Corel PowerTRACE). |
+| **VectorForge** | [msitarzewski/vectorforge](https://github.com/msitarzewski/vectorforge) | Python (FastAPI) | REST API raster-to-vector dengan validasi metrik kualitas hasil konversi. |
+| **ThorVG** | [thorvg/thorvg](https://github.com/thorvg/thorvg) | C++, WebGPU | Engine vektor produksi berkinerja tinggi untuk merender SVG dan animasi Lottie. |
+| **SVGL** | [pheralb/svgl](https://github.com/pheralb/svgl) | TypeScript, REST API | Katalog 400+ logo merek berformat SVG dengan REST API publik (`api.svgl.app`). |
+| **tdewolff/canvas** | [tdewolff/canvas](https://github.com/tdewolff/canvas) | Go | Mesin gambar vektor Go untuk ekspor SVG, PDF, EPS dengan operasi boolean path. |
+| **Two.js** | [jonobr1/two.js](https://github.com/jonobr1/two.js) | JavaScript | API gambar 2D renderer-agnostic (SVG, Canvas, WebGL) dengan SVG interpreter bawaan. |
+| **SVGLab** | [reznakt/svglab](https://github.com/reznakt/svglab) | Python | Pustaka parsing, manipulasi kurva, dan optimasi struktur berkas SVG. |
+| **@baku89/pave** | [baku89/pave](https://github.com/baku89/pave) | TypeScript | Toolkit manipulasi kurva SVG/Path2D (offsetting, resampling, normal/tangen). |
+| **PHP-SVG** | [codeberg.org/renfordt/php-svg](https://codeberg.org/renfordt/php-svg) | PHP | Library vektor zero-dependency untuk membuat dan merasterisasi SVG di sisi backend. |
+| **Iconify** | [iconify/iconify](https://github.com/iconify/iconify) | TypeScript, Node.js | Kerangka kerja ikon terpadu dengan 200,000+ ikon vektor dan REST API. |
+
+---
+
+## 7. Panduan Skrip Otomatisasi (`clone-coreldraw.sh`)
+
+Gunakan skrip [clone-coreldraw.sh](file:///Users/jevin/corel/clone-coreldraw.sh) yang disertakan dalam repositori untuk mengunduh dan menjalankan ekosistem yang dibutuhkan:
+
+```bash
+# Memberi izin eksekusi
+chmod +x clone-coreldraw.sh
+
+# 1. Menjalankan TraceDraw (default)
+./clone-coreldraw.sh run-tracedraw
+
+# 2. Meng-clone semua editor desktop
+./clone-coreldraw.sh desktop
+
+# 3. Meng-clone semua editor web / browser
+./clone-coreldraw.sh web
+
+# 4. Meng-clone model AI vektor (metadata & kode tanpa bobot puluhan GB)
+./clone-coreldraw.sh ai
+
+# 5. Meng-clone semua library & render engine
+./clone-coreldraw.sh libs
+
+# 6. Meng-clone seluruh ekosistem sekaligus
+./clone-coreldraw.sh all
+```

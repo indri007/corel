@@ -1,10 +1,40 @@
 # Build & Target artifacts
 target/
 *.log
+__pycache__/
+*.pdf
 
 # Cloned repositories (managed via clone-coreldraw.sh)
 tracedraw/
 coreldraw-clones/
+sk1-wx/
+gravit-designer/
+Graphite/
+inkscape/
+svgedit/
+calligra/
+lazpaint/
+SVGThinker-7B/
+HiVG-3B-Base/
+starvector-8b-im2svg/
+OmniSVG1.1_4B/
+svgl/
+vtracer/
+vectorforge/
+canvas/
+two.js/
+svglab/
+pave/
+php-svg/
+thorvg/
+iconify/
+GraphiteEditor/
+Vectora/
+suika/
+vectorcraft/
+Method-Draw/
+penpot/
+svg-animation-creator/
 
 # OS and IDE files
 .DS_Store
