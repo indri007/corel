@@ -303,9 +303,10 @@ with tab_img:
 
     with col_img_in:
         uploaded_img = st.file_uploader(
-            "Unggah Gambar / Dokumen Scan (PNG, JPG, WebP):",
-            type=["png", "jpg", "jpeg", "webp"],
-            key="img_enhancer_uploader"
+            "Unggah Gambar, Scan Dokumen, atau Berkas Word/PDF:",
+            type=["png", "jpg", "jpeg", "webp", "docx", "doc", "pdf"],
+            key="img_enhancer_uploader",
+            help="Mendukung format gambar (PNG/JPG), dokumen Word (.docx), dan PDF."
         )
 
         mode_process = st.selectbox(
@@ -323,7 +324,45 @@ with tab_img:
 
     with col_img_out:
         if uploaded_img is not None:
-            raw_img = Image.open(uploaded_img)
+            raw_bytes = uploaded_img.read()
+            uploaded_name_lower = uploaded_img.name.lower()
+
+            # Deteksi jika yang diunggah adalah Dokumen Word (.docx)
+            if uploaded_name_lower.endswith((".docx", ".doc")):
+                st.info(f"📄 Berkas Word terdeteksi: **{uploaded_img.name}**")
+                if not HAS_DOCX:
+                    st.error("Library `python-docx` belum terpasang.")
+                    st.stop()
+                
+                try:
+                    from docx import Document as DocxDoc
+                    doc_obj = DocxDoc(io.BytesIO(raw_bytes))
+                    full_text = "\n\n".join([p.text for p in doc_obj.paragraphs if p.text.strip()])
+                    
+                    st.success(f"✅ Dokumen Word berhasil dibaca ({len(full_text):,} karakter teks ditemukan)!")
+                    st.text_area("Isi Teks dari Berkas Word:", value=full_text, height=220)
+                    
+                    st.markdown("""
+                    💡 **Tips:** Untuk menyempurnakan dokumen Word ini menjadi **PDF Korporat Resmi** lengkap dengan Kop Surat, Watermark, Bingkai, dan Stempel Vektor, silakan buka **Tab 1 (Penyempurna PDF & Tulisan)**.
+                    """)
+                    st.stop()
+                except Exception as e:
+                    st.error(f"Gagal membaca berkas Word: {e}")
+                    st.stop()
+
+            # Deteksi jika yang diunggah adalah PDF
+            elif uploaded_name_lower.endswith(".pdf"):
+                try:
+                    pdf_doc = pymupdf.open(stream=raw_bytes, filetype="pdf")
+                    page_num = st.number_input("Pilih Halaman PDF untuk Diproses:", min_value=1, max_value=len(pdf_doc), value=1)
+                    page = pdf_doc[page_num - 1]
+                    pix = page.get_pixmap(dpi=150)
+                    raw_img = Image.open(io.BytesIO(pix.tobytes("png")))
+                except Exception as e:
+                    st.error(f"Gagal membaca berkas PDF: {e}")
+                    st.stop()
+            else:
+                raw_img = Image.open(io.BytesIO(raw_bytes))
 
             if mode_process.startswith("Pembersih"):
                 processed_img = clean_scanned_document(raw_img, aggressiveness=aggressiveness)
